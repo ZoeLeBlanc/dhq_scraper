@@ -7,6 +7,13 @@ import os
 import re
 from utils import process_xml_files, generate_xml_files
 
+def check_if_link_exists(link):
+    response = requests.get(link)
+    if (response.status_code == 200) and ("Resource Not Found" not in response.text):
+        return True
+    else:
+        return False
+
 def process_article_links(issue_links_df: pd.DataFrame) -> pd.DataFrame:
     """ 
     Function to scrape the article links from the issue links dataframe
