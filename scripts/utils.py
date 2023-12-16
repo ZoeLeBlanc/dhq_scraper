@@ -2,26 +2,45 @@ import xml.etree.ElementTree as ET
 import pandas as pd
 import os
 from tqdm import tqdm
+from typing import List, Tuple
 
-def process_xml_files(xml_files, output_path):
+def process_xml_files(xml_files: List[str], output_path: str) -> pd.DataFrame:
+    """
+    Function to process a list of XML files and extract specific data from each file.
+    The extracted data is stored in a pandas DataFrame and written to a CSV file.
+    
+    Args:
+        xml_files (List[str]): List of paths to the XML files to process.
+        output_path (str): Path to the output CSV file.
+
+    Returns:
+        pd.DataFrame: DataFrame containing the extracted data.
+    """
     # Define the XML namespaces
     namespaces = {
         'tei': "http://www.tei-c.org/ns/1.0",
         'dhq': "http://www.digitalhumanities.org/ns/dhq",
         'xml': "http://www.w3.org/XML/1998/namespace"
     }
+
+    # If the output file already exists, load it into a DataFrame
     if os.path.exists(output_path):
         final_df = pd.read_csv(output_path)
     else:
+        # List to store the data from each XML file
         all_data = []
+
+        # Process each XML file
         for file_name in tqdm(xml_files, desc="Processing XML files"):
-        
+            # Open the file and read its content
             with open(file_name, 'r', encoding='utf-8') as f:
                 file_content = f.read().strip()
                 
+            # Skip to the next file if the content is just the XML declaration
             if file_content == '<?xml version="1.0" encoding="UTF-8"?>':
-                continue  # Skip to the next file if the content is just the XML declaration
+                continue  
             
+            # Parse the XML file and get the root element
             try:
                 tree = ET.parse(file_name)
                 root = tree.getroot()
@@ -107,25 +126,48 @@ def process_xml_files(xml_files, output_path):
         final_df.to_csv(output_path, index=False)
     return final_df
 
-def generate_xml_files(directory_path):
+def generate_xml_files(directory_path: str) -> List[str]:
+    """
+    Function to generate a list of XML files in a given directory and its subdirectories.
+    Excludes files that meet certain conditions.
+
+    Args:
+        directory_path (str): Path to the directory to search for XML files.
+
+    Returns:
+        List[str]: List of paths to the XML files.
+    """
+    # List of strings to exclude from the file names
     exclude = ['old', 'converted', 'dhq', 'sample', 'recovered', 'test', 'walsh']
 
-    # List only XML files
+    # Generate a list of XML files that do not meet the exclusion conditions
     xml_files = [os.path.join(dp, f) for dp, _, filenames in os.walk(directory_path) for f in filenames 
                 if f.endswith('.xml') 
                 and not any(ex_str in f for ex_str in exclude) 
                 and not f.startswith('999') and not f.startswith('000000') and not '_' in f]
     return xml_files
 
-def get_scraped_dhq_files():
+def get_scraped_dhq_files() -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Function to get data from scraped DHQ files.
+    Reads data from CSV files if they exist, otherwise creates empty DataFrames.
+
+    Returns:
+        Tuple[pd.DataFrame, pd.DataFrame]: Tuple containing two DataFrames.
+    """
+    # Path to the CSV file containing the updated data
     updated_df_output_path = "../data/missing_dhq_data.csv"
+
+    # If the CSV file exists, read it into a DataFrame, otherwise create an empty DataFrame
     if os.path.exists(updated_df_output_path):
         updated_df = pd.read_csv(updated_df_output_path)
     else:
         updated_df = pd.DataFrame()
 
+    # Path to the CSV file containing the article links
     article_links_df_output_path = "../data/dhq_article_links.csv"
 
+    # If the CSV file exists, read it into a DataFrame and extract certain data, otherwise create an empty DataFrame
     if os.path.exists(article_links_df_output_path):
         article_links_df = pd.read_csv(article_links_df_output_path)
         pattern = r'.*vol/([^/]*)/([^/]*)/(\d+)/\3\.html'
@@ -133,4 +175,5 @@ def get_scraped_dhq_files():
         article_links_df.volume = article_links_df.volume.apply(lambda x: x.zfill(3))
     else:
         article_links_df = pd.DataFrame()
+
     return article_links_df, updated_df
