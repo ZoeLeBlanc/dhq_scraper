@@ -4,7 +4,7 @@ import os
 from tqdm import tqdm
 from typing import List, Tuple
 
-def process_xml_files(xml_files: List[str], output_path: str) -> pd.DataFrame:
+def process_xml_files(xml_files: List[str], output_path: str, rerun_code: bool) -> pd.DataFrame:
     """
     Function to process a list of XML files and extract specific data from each file.
     The extracted data is stored in a pandas DataFrame and written to a CSV file.
@@ -12,6 +12,7 @@ def process_xml_files(xml_files: List[str], output_path: str) -> pd.DataFrame:
     Args:
         xml_files (List[str]): List of paths to the XML files to process.
         output_path (str): Path to the output CSV file.
+        rerun_code (bool): Flag to indicate whether to rerun the processing or load the existing data.
 
     Returns:
         pd.DataFrame: DataFrame containing the extracted data.
@@ -22,9 +23,9 @@ def process_xml_files(xml_files: List[str], output_path: str) -> pd.DataFrame:
         'dhq': "http://www.digitalhumanities.org/ns/dhq",
         'xml': "http://www.w3.org/XML/1998/namespace"
     }
-
+    existing_data = pd.read_csv(output_path) if os.path.exists(output_path) and not rerun_code else pd.DataFrame()
     # If the output file already exists, load it into a DataFrame
-    if os.path.exists(output_path):
+    if os.path.exists(output_path) and not rerun_code:
         final_df = pd.read_csv(output_path)
     else:
         # List to store the data from each XML file

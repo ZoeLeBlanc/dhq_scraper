@@ -41,10 +41,12 @@ def get_latest_local_commit_sha() -> Optional[str]:
         str: The latest commit SHA if successful, None otherwise
     """
     if os.path.exists(LOCAL_REPO_PATH):
-        os.chdir(LOCAL_REPO_PATH)
         try:
-            # Run the Git command to get the latest commit SHA
-            latest_local_commit_sha = subprocess.check_output(["git", "rev-parse", "HEAD"]).strip().decode()
+            # Run the Git command to get the latest commit SHA from the specified repo folder
+            latest_local_commit_sha = subprocess.check_output(
+                ["git", "rev-parse", "HEAD"],
+                cwd=LOCAL_REPO_PATH
+            ).strip().decode()
             return latest_local_commit_sha
         except subprocess.CalledProcessError as e:
             print("An error occurred while accessing the local Git repository.")
@@ -72,8 +74,7 @@ def compare_commits() -> None:
 
         # If the local repository exists, pull the updates
         if os.path.exists(LOCAL_REPO_PATH):
-            os.chdir(LOCAL_REPO_PATH)
-            subprocess.run(["git", "pull"])
+            subprocess.run(["git", "pull"], cwd=LOCAL_REPO_PATH)
         # If the local repository doesn't exist, clone the repository
         else:
             subprocess.run(["git", "clone", f"git@github.com:{REPO_OWNER}/{REPO_NAME}.git", LOCAL_REPO_PATH])

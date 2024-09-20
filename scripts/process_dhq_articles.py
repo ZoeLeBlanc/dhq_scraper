@@ -48,7 +48,7 @@ def infer_dates(rows: pd.DataFrame) -> pd.DataFrame:
     rows = pd.concat([missing_dates, has_dates])
     return rows
 
-def create_dataset(directory_path: str, processed_df_output_path: str) -> pd.DataFrame:
+def create_dataset(directory_path: str, processed_df_output_path: str, rerun_code: bool) -> pd.DataFrame:
     """
     Function to create a dataset from XML files in a given directory.
     The dataset is saved to a CSV file.
@@ -61,14 +61,14 @@ def create_dataset(directory_path: str, processed_df_output_path: str) -> pd.Dat
         pd.DataFrame: DataFrame containing the processed data.
     """
     # If the output file already exists, load it into a DataFrame
-    if os.path.exists(processed_df_output_path):
+    if os.path.exists(processed_df_output_path) and not rerun_code:
         processed_df = pd.read_csv(processed_df_output_path)
     else:
         # Generate a list of XML files in the directory
         xml_files = generate_xml_files(directory_path)
 
         # Process the XML files and save the data to a DataFrame
-        df = process_xml_files(xml_files, "../data/initial_dhq_data.csv")
+        df = process_xml_files(xml_files, "../data/initial_dhq_data.csv", rerun_code)
 
         # Correct a typo in the 'date_when' column
         df.date_when = df.date_when.str.replace('Feburary', 'February')
@@ -185,7 +185,8 @@ def finalize_dataset(processed_df: pd.DataFrame) -> None:
 
 
 if __name__ == "__main__":
-    processed_df = create_dataset("../data/dhq-journal/articles", "../data/processed_dhq_data.csv")
+    rerun_code = True
+    processed_df = create_dataset("../data/dhq-journal/articles", "../data/processed_dhq_data.csv", rerun_code)
     processed_df['DHQarticle-id'] = processed_df['DHQarticle-id'].astype(str)
     processed_df['DHQarticle-id'] = processed_df['DHQarticle-id'].str.zfill(6)
     finalize_dataset(processed_df)
