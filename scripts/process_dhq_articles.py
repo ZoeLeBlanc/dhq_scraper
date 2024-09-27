@@ -77,6 +77,7 @@ def create_dataset(directory_path: str, processed_df_output_path: str, rerun_cod
         df['date_processed'] = pd.to_datetime(df['date_when'])
 
         # Apply the 'check_duplicates' function to each group of rows with the same 'DHQarticle-id'
+        tqdm.pandas(desc="Checking duplicates")
         df = df.groupby('DHQarticle-id', group_keys=False).progress_apply(check_duplicates)
 
         # Correct the 'volume' and 'issue' values for a specific file
