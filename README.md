@@ -23,4 +23,4 @@ The repository is structured as follows:
 
 ### Notebooks
 
-1. `DHQEDA.ipybn`: This notebook contains the exploratory data analysis of the dataset.
+1. `DHQEDA.ipynb`: This notebook contains the exploratory data analysis of the dataset.
